@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đề thi môn Tiếng Anh (Lớp 4)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            background-color: #f8f9fa;
+        }
+        input[type="text"], textarea {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
+        .correct-ans { color: #10b981; font-weight: bold; }
+        .wrong-ans { color: #ef4444; font-weight: bold; }
+    </style>
+</head>
+<body class="text-gray-800 font-sans pb-16">
+
+    <!-- Header & Hướng dẫn -->
+    <div class="max-w-4xl mx-auto px-4 mt-8">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8 mb-6">
+            <h1 class="text-2xl md:text-3xl font-bold text-center text-[#1e3a8a] mb-2 uppercase">Đề thi môn Tiếng Anh - Lớp 4</h1>
+            <div class="flex flex-wrap justify-center gap-4 text-sm text-gray-600 font-medium mb-6">
+                <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full border border-blue-100">Thời gian làm bài: 45 phút</span>
+                <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full border border-blue-100">Tổng số: 50 câu</span>
+            </div>
+
+            <!-- Box Điểm số -->
+            <div id="score-display" class="hidden bg-[#1e3a8a] text-white rounded-lg p-4 text-center mb-6 shadow-md">
+                <h2 class="text-lg text-blue-200 font-semibold">TỔNG ĐIỂM CỦA BẠN</h2>
+                <div class="text-4xl font-bold mt-1" id="final-score-text">0.0 / 10</div>
+            </div>
+
+            <!-- Box Thông tin học sinh & Thời gian -->
+            <div class="bg-[#f8f9fa] border border-gray-200 rounded-lg p-5 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="w-full md:w-2/3">
+                    <label class="block text-[#1f2937] font-bold mb-2">Họ và tên học sinh <span class="text-red-500">*</span></label>
+                    <input type="text" id="student-name" placeholder="Nhập đầy đủ họ và tên..." 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:border-transparent text-lg">
+                </div>
+                <div class="w-full md:w-1/3 flex justify-center md:justify-end">
+                    <div class="text-center bg-white border border-gray-200 rounded-lg px-6 py-3 shadow-sm min-w-[150px]">
+                        <p class="text-xs text-gray-500 font-bold uppercase tracking-wide mb-1">Thời gian còn lại</p>
+                        <p id="timer" class="text-2xl font-bold text-red-600 font-mono">45:00</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Khung chứa câu hỏi -->
+        <div id="quiz-container" class="space-y-6">
+            <!-- Render bằng JavaScript -->
+        </div>
+
+        <!-- Nút hành động -->
+        <div class="mt-8 flex justify-center gap-4">
+            <button id="submit-btn" class="bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold py-3 px-8 rounded-lg shadow-md transition duration-200 text-lg cursor-pointer">
+                NỘP BÀI VÀ XEM KẾT QUẢ
+            </button>
+            <button id="retry-btn" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-8 rounded-lg shadow-md transition duration-200 text-lg cursor-pointer">
+                LÀM LẠI BÀI THI
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Kết quả -->
+    <div id="result-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden px-4">
+        <div class="bg-white rounded-xl shadow-2xl p-6 md:p-8 max-w-lg w-full text-center transform transition-all">
+            <h2 class="text-2xl font-bold text-[#1e3a8a] mb-2">KẾT QUẢ BÀI THI</h2>
+            <p id="modal-name" class="text-gray-700 font-medium mb-4 text-lg"></p>
+            
+            <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+                <div class="text-4xl font-bold text-[#2563eb] mb-1" id="modal-score">0.0</div>
+                <p class="text-gray-500 text-sm font-semibold uppercase">Điểm tổng (Hệ số 10)</p>
+            </div>
+
+            <div class="flex justify-around text-sm font-semibold mb-4 px-2">
+                <span class="text-emerald-600 bg-emerald-50 px-3 py-1 rounded">Số câu đúng: <span id="modal-correct">0</span> / 50</span>
+                <span class="text-red-600 bg-red-50 px-3 py-1 rounded">Số câu sai: <span id="modal-wrong">0</span> / 50</span>
+            </div>
+
+            <div class="text-left bg-red-50 text-red-700 p-3 rounded-lg text-sm mb-6 max-h-36 overflow-y-auto border border-red-100">
+                <p class="font-bold mb-1">Danh sách các câu làm sai:</p>
+                <p id="modal-wrong-list" class="leading-relaxed">Không có</p>
+            </div>
+
+            <button id="close-modal-btn" class="w-full bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold py-3 px-4 rounded-lg transition duration-200 cursor-pointer">
+                XEM ĐÁP ÁN CHI TIẾT
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // DỮ LIỆU ĐỀ THI 50 CÂU HOÀN CHỈNH
+        const questionsData = [
+            // PHẦN 1
+            { id: 1, section: "PHẦN 1: TỪ VỰNG VÀ NGỮ PHÁP DANH TỪ", subHeader: "Bài 1: Tìm từ khác loại trong mỗi nhóm sau", type: "mcq", q: "A. Monday | B. Tuesday | C. October | D. Friday", options: ["A. Monday", "B. Tuesday", "C. October", "D. Friday"], ans: "C", explain: "October là tháng, các từ còn lại là thứ trong tuần." },
+            { id: 2, section: "PHẦN 1: TỪ VỰNG VÀ NGỮ PHÁP DANH TỪ", type: "mcq", q: "A. English | B. Vietnamese | C. Science | D. Teacher", options: ["A. English", "B. Vietnamese", "C. Science", "D. Teacher"], ans: "D", explain: "Teacher là nghề nghiệp, các từ còn lại là môn học." },
+            { id: 3, section: "PHẦN 1: TỪ VỰNG VÀ NGỮ PHÁP DANH TỪ", type: "mcq", q: "A. zoo | B. park | C. bakery | D. monkey", options: ["A. zoo", "B. park", "C. bakery", "D. monkey"], ans: "D", explain: "Monkey là con vật, các từ còn lại là địa điểm." },
+            
+            { id: 4, section: "PHẦN 1: TỪ VỰNG VÀ NGỮ PHÁP DANH TỪ", subHeader: "Bài 2: Chọn từ đúng điền vào chỗ trống (a / an / some / any / How much / How many)", type: "mcq", q: "Do you have ________ pencils in your pencil case?", options: ["A. a", "B. an", "C. any", "D. many"], ans: "C", explain: "Dùng 'any' trong câu hỏi với danh từ số nhiều." },
+            { id: 5, section: "PHẦN 1: TỪ VỰNG VÀ NGỮ PHÁP DANH TỪ", type: "mcq", q: "I would like ________ apple and ________ water, please.", options: ["A. a; some", "B. an; some", "C. an; any", "D. a; any"], ans: "B", explain: "'apple' bắt đầu bằng nguyên âm -> 'an'; 'water' là danh từ không đếm được dùng 'some'." },
+            { id: 6, section: "PHẦN 1: TỪ VỰNG VÀ NGỮ PHÁP DANH TỪ", type: "mcq", q: "________ lessons do you have today?", options: ["A. How much", "B. How many", "C. How", "D. What"], ans: "B", explain: "'lessons' đếm được số nhiều -> 'How many'." },
+            { id: 7, section: "PHẦN 1: TỪ VỰNG VÀ NGỮ PHÁP DANH TỪ", type: "mcq", q: "________ lemonade is there in the glass?", options: ["A. How many", "B. How much", "C. How", "D. What"], ans: "B", explain: "'lemonade' không đếm được -> 'How much'." },
+            
+            { id: 8, section: "PHẦN 1: TỪ VỰNG VÀ NGỮ PHÁP DANH TỪ", subHeader: "Bài 3: Chọn dạng đúng của danh từ số ít hoặc số nhiều", type: "mcq", q: "There are three ________ playing in the schoolyard.", options: ["A. child", "B. childs", "C. children", "D. childrens"], ans: "C", explain: "Số nhiều bất quy tắc của 'child' là 'children'." },
+            { id: 9, section: "PHẦN 1: TỪ VỰNG VÀ NGỮ PHÁP DANH TỪ", type: "mcq", q: "My mother buys five ________ at the market.", options: ["A. mango", "B. mangos", "C. mangoes", "D. mangoess"], ans: "C", explain: "Kết thúc bằng 'o' -> thêm 'es' thành 'mangoes'." },
+            { id: 10, section: "PHẦN 1: TỪ VỰNG VÀ NGỮ PHÁP DANH TỪ", type: "mcq", q: "Look! Two ________ are eating cheese under the table.", options: ["A. mouses", "B. mice", "C. mices", "D. mouse"], ans: "B", explain: "Số nhiều bất quy tắc của 'mouse' là 'mice'." },
+
+            // PHẦN 2
+            { id: 11, section: "PHẦN 2: NGỮ PHÁP VÀ MẪU CÂU", subHeader: "Bài 4: Chọn đáp án đúng nhất (A, B, C hoặc D) để hoàn thành các câu sau", type: "mcq", q: "What day is it today? - It's ________.", options: ["A. September", "B. Wednesday", "C. morning", "D. 8 o'clock"], ans: "B", explain: "Hỏi thứ trong tuần -> 'Wednesday'." },
+            { id: 12, section: "PHẦN 2: NGỮ PHÁP VÀ MẪU CÂU", type: "mcq", q: "What do you do ________ Mondays?", options: ["A. in", "B. at", "C. on", "D. to"], ans: "C", explain: "Trước thứ trong tuần dùng 'on'." },
+            { id: 13, section: "PHẦN 2: NGỮ PHÁP VÀ MẪU CÂU", type: "mcq", q: "Linh ________ swimming on Saturday afternoons.", options: ["A. go", "B. goes", "C. going", "D. plays"], ans: "B", explain: "Ngôi thứ 3 số ít -> 'goes'." },
+            { id: 14, section: "PHẦN 2: NGỮ PHÁP VÀ MẪU CÂU", type: "mcq", q: "Where ________ you from? - I'm from Vietnam.", options: ["A. do", "B. is", "C. are", "D. am"], ans: "C", explain: "Chủ ngữ 'you' đi với to be 'are'." },
+            { id: 15, section: "PHẦN 2: NGỮ PHÁP VÀ MẪU CÂU", type: "mcq", q: "What nationality is Tom? - He is ________.", options: ["A. America", "B. American", "C. England", "D. Japan"], ans: "B", explain: "Hỏi quốc tịch -> 'American'." },
+            { id: 16, section: "PHẦN 2: NGỮ PHÁP VÀ MẪU CÂU", type: "mcq", q: "My birthday is ________ the fifth of May.", options: ["A. in", "B. on", "C. at", "D. from"], ans: "B", explain: "Có ngày cụ thể -> dùng 'on'." },
+            { id: 17, section: "PHẦN 2: NGỮ PHÁP VÀ MẪU CÂU", type: "mcq", q: "What can you do? - I can ________ the guitar.", options: ["A. play", "B. cook", "C. ride", "D. swim"], ans: "A", explain: "Chơi nhạc cụ -> 'play'." },
+            { id: 18, section: "PHẦN 2: NGỮ PHÁP VÀ MẪU CÂU", type: "mcq", q: "What is your favourite ________? - It's orange juice.", options: ["A. food", "B. drink", "C. animal", "D. sport"], ans: "B", explain: "Nước cam là đồ uống (drink)." },
+            { id: 19, section: "PHẦN 2: NGỮ PHÁP VÀ MẪU CÂU", type: "mcq", q: "What time do you ________ breakfast?", options: ["A. go", "B. get", "C. have", "D. wash"], ans: "C", explain: "Cụm từ 'have breakfast'." },
+            { id: 20, section: "PHẦN 2: NGỮ PHÁP VÀ MẪU CÂU", type: "mcq", q: "My father gets up ________ 6:00 a.m. every morning.", options: ["A. in", "B. at", "C. on", "D. to"], ans: "B", explain: "Trước giờ cụ thể dùng 'at'." },
+            { id: 21, section: "PHẦN 2: NGỮ PHÁP VÀ MẪU CÂU", type: "mcq", q: "Where is your school? - It's ________ Hoan Kiem Street.", options: ["A. in", "B. at", "C. on", "D. from"], ans: "C", explain: "Tên đường phố dùng 'on'." },
+            { id: 22, section: "PHẦN 2: NGỮ PHÁP VÀ MẪU CÂU", type: "mcq", q: "What class are you in? - I'm in ________.", options: ["A. Class 4A", "B. Primary School", "C. Hanoi", "D. student"], ans: "A", explain: "Hỏi lớp -> 'Class 4A'." },
+            { id: 23, section: "PHẦN 2: NGỮ PHÁP VÀ MẪU CÂU", type: "mcq", q: "Why do you want to go to the bakery? - Because I want to buy some ________.", options: ["A. books", "B. bread", "C. medicine", "D. clothes"], ans: "B", explain: "Tiệm bánh mì mua 'bread'." },
+            { id: 24, section: "PHẦN 2: NGỮ PHÁP VÀ MẪU CÂU", type: "mcq", q: "How much ________ these shoes?", options: ["A. is", "B. am", "C. are", "D. do"], ans: "C", explain: "'These shoes' số nhiều -> 'are'." },
+            { id: 25, section: "PHẦN 2: NGỮ PHÁP VÀ MẪU CÂU", type: "mcq", q: "What animal do you want to see? - I want to see ________ because they can swing.", options: ["A. tigers", "B. monkeys", "C. bears", "D. elephants"], ans: "B", explain: "Động vật đu dây là khỉ (monkeys)." },
+
+            // PHẦN 3
+            { id: 26, section: "PHẦN 3: GIAO TIẾP HÀNG NGÀY", subHeader: "Bài 5: Chọn câu trả lời phù hợp nhất (A, B, C hoặc D) cho mỗi tình huống giao tiếp", type: "mcq", q: "Nam: \"What is your hobby?\" — Hoa: \"________________________\"", options: ["A. I like listening to music.", "B. I have Music on Tuesdays.", "C. I want to be a singer.", "D. I can speak English."], ans: "A", explain: "Hỏi sở thích -> 'I like listening to music.'" },
+            { id: 27, section: "PHẦN 3: GIAO TIẾP HÀNG NGÀY", type: "mcq", q: "Peter: \"Would you like some milk?\" — Mary: \"________________________\"", options: ["A. Yes, I do.", "B. Yes, please.", "C. No, I don't.", "D. It's 10,000 VND."], ans: "B", explain: "Lời mời -> 'Yes, please.'" },
+            { id: 28, section: "PHẦN 3: GIAO TIẾP HÀNG NGÀY", type: "mcq", q: "Mai: \"When is your birthday?\" — Quan: \"________________________\"", options: ["A. It's on the tenth of October.", "B. I'm ten years old.", "C. It's fine, thanks.", "D. I go to school on foot."], ans: "A", explain: "Hỏi ngày sinh nhật -> 'It's on the tenth of October.'" },
+            { id: 29, section: "PHẦN 3: GIAO TIẾP HÀNG NGÀY", type: "mcq", q: "Tony: \"What does your mother do?\" — Phong: \"________________________\"", options: ["A. She is cooking in the kitchen.", "B. She is a nurse at a hospital.", "C. She likes reading books.", "D. She is forty years old."], ans: "B", explain: "Hỏi nghề nghiệp mẹ -> 'She is a nurse...'" },
+            { id: 30, section: "PHẦN 3: GIAO TIẾP HÀNG NGÀY", type: "mcq", q: "Clerk: \"Can I help you?\" — Customer: \"________________________\"", options: ["A. Yes, I'd like a pair of jeans.", "B. It's 50,000 VND.", "C. They are very nice.", "D. Thank you very much."], ans: "A", explain: "Nhân viên chào hàng -> khách hàng chọn mua đồ." },
+
+            // PHẦN 4
+            { 
+                id: 31, 
+                section: "PHẦN 4: ĐỌC HIỂU", 
+                subHeader: `Bài 6: Đọc đoạn văn và chọn từ đúng (A, B, C hoặc D) điền vào chỗ trống
+                <div class='bg-blue-50 border-l-4 border-[#2563eb] p-5 rounded-r-lg text-xl leading-relaxed my-3 text-gray-900 font-medium'>
+                    Hello, my name is Linda. Today is Sunday, so I don't go to (31) _________. In the morning, I get up at 6:30. I have breakfast with my family at 7:00. My favourite drink is (32) _________ juice. In the afternoon, I go to the (33) _________ with my mother because I want to buy some books and pens. In the evening, I do my homework and read comics. I go to bed at 10:00 p.m. Sunday is my (34) _________ day of the week because I can (35) _________ and spend time with my family.
+                </div>`, 
+                type: "mcq", 
+                q: "Điền từ cho câu (31):", 
+                options: ["A. school", "B. park", "C. zoo", "D. hospital"], 
+                ans: "A", 
+                explain: "Chủ nhật không đi học (school)." 
+            },
+            { id: 32, section: "PHẦN 4: ĐỌC HIỂU", type: "mcq", q: "Điền từ cho câu (32):", options: ["A. chicken", "B. orange", "C. beef", "D. bread"], ans: "B", explain: "Nước cam ép (orange juice)." },
+            { id: 33, section: "PHẦN 4: ĐỌC HIỂU", type: "mcq", q: "Điền từ cho câu (33):", options: ["A. bakery", "B. pharmacy", "C. bookshop", "D. butcher's"], ans: "C", explain: "Mua sách bút ở hiệu sách (bookshop)." },
+            { id: 34, section: "PHẦN 4: ĐỌC HIỂU", type: "mcq", q: "Điền từ cho câu (34):", options: ["A. dangerous", "B. favourite", "C. important", "D. difficult"], ans: "B", explain: "Ngày yêu thích nhất (favourite day)." },
+            { id: 35, section: "PHẦN 4: ĐỌC HIỂU", type: "mcq", q: "Điền từ cho câu (35):", options: ["A. relax", "B. study", "C. cook", "D. swim"], ans: "A", explain: "Nghỉ ngơi, thư giãn (relax)." },
+
+            { 
+                id: 36, 
+                section: "PHẦN 4: ĐỌC HIỂU", 
+                subHeader: `Bài 7: Đọc đoạn văn và chọn đáp án đúng cho các câu hỏi bên dưới
+                <div class='bg-blue-50 border-l-4 border-[#2563eb] p-5 rounded-r-lg text-xl leading-relaxed my-3 text-gray-900 font-medium'>
+                    My name is Tony. I am nine years old and I am in Class 4B. My school is big and beautiful. Every day, I get up at six o'clock. I clean my teeth, wash my face, and have breakfast at 6:30. My father is a doctor. He works in a big hospital in the city. My mother is an English teacher. She works in a primary school. On Sundays, my family usually goes to the zoo. My favourite animals are monkeys because they are clever and funny. My sister likes peacocks because they dance beautifully. We all have a wonderful time together.
+                </div>`, 
+                type: "mcq", 
+                q: "How old is Tony?", 
+                options: ["A. 8 years old", "B. 9 years old", "C. 10 years old", "D. 11 years old"], 
+                ans: "B", 
+                explain: "Tony 9 tuổi." 
+            },
+            { id: 37, section: "PHẦN 4: ĐỌC HIỂU", type: "mcq", q: "What time does Tony get up?", options: ["A. At 6:00", "B. At 6:30", "C. At 7:00", "D. At 7:30"], ans: "A", explain: "Thức dậy lúc 6 giờ (At 6:00)." },
+            { id: 38, section: "PHẦN 4: ĐỌC HIỂU", type: "mcq", q: "Where does Tony's father work?", options: ["A. In a primary school", "B. In a factory", "C. In a big hospital", "D. In a farm"], ans: "C", explain: "Bố làm việc ở bệnh viện lớn (In a big hospital)." },
+            { id: 39, section: "PHẦN 4: ĐỌC HIỂU", type: "mcq", q: "What does Tony's mother do?", options: ["A. She is a doctor.", "B. She is a nurse.", "C. She is an English teacher.", "D. She is a worker."], ans: "C", explain: "Mẹ là giáo viên tiếng Anh (She is an English teacher)." },
+            { id: 40, section: "PHẦN 4: ĐỌC HIỂU", type: "mcq", q: "Why does Tony like monkeys?", options: ["A. Because they dance beautifully.", "B. Because they are big.", "C. Because they are clever and funny.", "D. Because they can swim."], ans: "C", explain: "Vì chúng thông minh và vui nhộn (clever and funny)." },
+
+            // PHẦN 5
+            { id: 41, section: "PHẦN 5: KĨ NĂNG VIẾT VÀ BÀI TẬP DANH TỪ", subHeader: "Bài 8: Sắp xếp các từ cho sẵn thành câu hoàn chỉnh", type: "text", q: "do / What / have / subjects / you / today / ?", ans: "What subjects do you have today?", explain: "What subjects do you have today?" },
+            { id: 42, section: "PHẦN 5: KĨ NĂNG VIẾT VÀ BÀI TẬP DANH TỪ", type: "text", q: "do / What / you / time / go / bed / to / ?", ans: "What time do you go to bed?", explain: "What time do you go to bed?" },
+            { id: 43, section: "PHẦN 5: KĨ NĂNG VIẾT VÀ BÀI TẬP DANH TỪ", type: "text", q: "go / I / to / zoo / the / want / to / because / animals / see / I / want / .", ans: "I want to go to the zoo because I want to see animals.", explain: "I want to go to the zoo because I want to see animals." },
+            { id: 44, section: "PHẦN 5: KĨ NĂNG VIẾT VÀ BÀI TẬP DANH TỪ", type: "text", q: "is / favourite / My / drink / apple / juice / .", ans: "My favourite drink is apple juice.", explain: "My favourite drink is apple juice." },
+            { id: 45, section: "PHẦN 5: KĨ NĂNG VIẾT VÀ BÀI TẬP DANH TỪ", type: "text", q: "much / are / How / these / shoes / yellow / ?", ans: "How much are these yellow shoes?", explain: "How much are these yellow shoes?" },
+            
+            { id: 46, section: "PHẦN 5: KĨ NĂNG VIẾT VÀ BÀI TẬP DANH TỪ", subHeader: "Bài 9: Cho dạng đúng của danh từ số ít hoặc số nhiều trong ngoặc", type: "text", q: "My sister buys two new _________ (watch) at the shop.", ans: "watches", explain: "Tận cùng '-ch' -> thêm '-es'." },
+            { id: 47, section: "PHẦN 5: KĨ NĂNG VIẾT VÀ BÀI TẬP DANH TỪ", type: "text", q: "There are four _________ (box) of milk on the table.", ans: "boxes", explain: "Tận cùng '-x' -> thêm '-es'." },
+            { id: 48, section: "PHẦN 5: KĨ NĂNG VIẾT VÀ BÀI TẬP DANH TỪ", type: "text", q: "The farmer has ten _________ (sheep) on his farm.", ans: "sheep", explain: "Danh từ bất quy tắc số nhiều giữ nguyên 'sheep'." },
+            { id: 49, section: "PHẦN 5: KĨ NĂNG VIẾT VÀ BÀI TẬP DANH TỪ", type: "text", q: "Look! Three _________ (mouse) are running under the bed.", ans: "mice", explain: "Số nhiều bất quy tắc của 'mouse' là 'mice'." },
+            { id: 50, section: "PHẦN 5: KĨ NĂNG VIẾT VÀ BÀI TẬP DANH TỪ", type: "text", q: "Be careful with those _________ (knife) on the counter.", ans: "knives", explain: "Tận cùng '-fe' đổi thành '-ves'." }
+        ];
+
+        const STORAGE_KEY = "english_exam_grade4_v45m";
+        let timeRemaining = 45 * 60; // 45 phút = 2700s
+        let timerInterval = null;
+        let isSubmitted = false;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initAntiCopy();
+            renderUI();
+            loadState();
+            
+            if (!isSubmitted) {
+                startTimer();
+            } else {
+                restoreSubmittedUI();
+            }
+
+            document.getElementById('submit-btn').addEventListener('click', () => submitExam(false));
+            document.getElementById('retry-btn').addEventListener('click', retryExam);
+            document.getElementById('close-modal-btn').addEventListener('click', closeModal);
+            document.getElementById('student-name').addEventListener('input', saveState);
+        });
+
+        function initAntiCopy() {
+            document.addEventListener('contextmenu', e => e.preventDefault());
+            document.addEventListener('copy', e => e.preventDefault());
+            document.addEventListener('cut', e => e.preventDefault());
+            document.addEventListener('dragstart', e => e.preventDefault());
+            document.addEventListener('keydown', e => {
+                if ((e.ctrlKey || e.metaKey) && ['c', 'u', 's', 'a', 'p'].includes(e.key.toLowerCase())) {
+                    e.preventDefault();
+                }
+                if (e.key === 'F12') e.preventDefault();
+            });
+        }
+
+        function renderUI() {
+            const container = document.getElementById('quiz-container');
+            let currentSection = '';
+            let currentSubHeader = '';
+
+            questionsData.forEach(item => {
+                if (item.section !== currentSection) {
+                    currentSection = item.section;
+                    const sectionTitle = document.createElement('h2');
+                    sectionTitle.className = "text-xl font-bold text-[#1e3a8a] mt-10 mb-2 border-b-2 border-blue-200 pb-2 uppercase";
+                    sectionTitle.innerText = currentSection;
+                    container.appendChild(sectionTitle);
+                    currentSubHeader = ''; 
+                }
+
+                if (item.subHeader && item.subHeader !== currentSubHeader) {
+                    currentSubHeader = item.subHeader;
+                    const subTitle = document.createElement('div');
+                    subTitle.className = "text-lg font-bold text-gray-700 mt-6 mb-3";
+                    subTitle.innerHTML = currentSubHeader;
+                    container.appendChild(subTitle);
+                }
+
+                const card = document.createElement('div');
+                card.className = "bg-white p-5 rounded-lg border border-gray-200 shadow-sm";
+                card.id = `question-card-${item.id}`;
+
+                let htmlContent = `<p class="font-bold text-gray-800 mb-3 text-base">Câu ${item.id}. ${item.q}</p>`;
+
+                if (item.type === 'mcq') {
+                    htmlContent += `<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">`;
+                    item.options.forEach(opt => {
+                        const val = opt.charAt(0);
+                        htmlContent += `
+                            <label class="flex items-center p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-blue-50 transition">
+                                <input type="radio" name="q${item.id}" value="${val}" class="w-4 h-4 text-[#2563eb] mr-3">
+                                <span>${opt}</span>
+                            </label>
+                        `;
+                    });
+                    htmlContent += `</div>`;
+                } else {
+                    htmlContent += `<input type="text" id="q${item.id}" placeholder="Nhập câu trả lời..." class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#2563eb] outline-none text-base">`;
+                }
+
+                htmlContent += `
+                    <div id="feedback-${item.id}" class="hidden mt-4 pt-3 border-t border-gray-100 text-sm">
+                        <p class="mb-1"><span class="font-bold text-gray-700">Trạng thái:</span> <span id="status-${item.id}"></span></p>
+                        <p class="mb-1"><span class="font-bold text-gray-700">Đáp án đúng:</span> <span class="text-[#2563eb] font-bold">${item.ans}</span></p>
+                        <p><span class="font-bold text-gray-700">Giải thích:</span> ${item.explain}</p>
+                    </div>
+                `;
+
+                card.innerHTML = htmlContent;
+                container.appendChild(card);
+            });
+
+            document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                radio.addEventListener('change', saveState);
+            });
+            document.querySelectorAll('input[type="text"]').forEach(input => {
+                input.addEventListener('input', saveState);
+            });
+        }
+
+        function saveState() {
+            if (isSubmitted) return;
+            try {
+                const answers = {};
+                questionsData.forEach(q => {
+                    if (q.type === 'mcq') {
+                        const checked = document.querySelector(`input[name="q${q.id}"]:checked`);
+                        if (checked) answers[q.id] = checked.value;
+                    } else {
+                        const el = document.getElementById(`q${q.id}`);
+                        if (el) answers[q.id] = el.value;
+                    }
+                });
+
+                const nameInput = document.getElementById('student-name');
+                const state = {
+                    time: timeRemaining,
+                    name: nameInput ? nameInput.value : '',
+                    answers: answers,
+                    submitted: isSubmitted
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            } catch (e) {
+                console.warn("Không thể lưu LocalStorage:", e);
+            }
+        }
+
+        function loadState() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const state = JSON.parse(saved);
+                    const nameInput = document.getElementById('student-name');
+                    if (nameInput) nameInput.value = state.name || '';
+                    if (typeof state.time === 'number') timeRemaining = state.time;
+                    isSubmitted = !!state.submitted;
+
+                    if (state.answers) {
+                        questionsData.forEach(q => {
+                            const val = state.answers[q.id];
+                            if (val !== undefined) {
+                                if (q.type === 'mcq') {
+                                    const radio = document.querySelector(`input[name="q${q.id}"][value="${val}"]`);
+                                    if (radio) radio.checked = true;
+                                } else {
+                                    const el = document.getElementById(`q${q.id}`);
+                                    if (el) el.value = val;
+                                }
+                            }
+                        });
+                    }
+                }
+            } catch (e) {
+                console.warn("Không thể tải LocalStorage:", e);
+            }
+        }
+
+        function startTimer() {
+            updateTimerUI();
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                saveState();
+                updateTimerUI();
+
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    alert("Đã hết 45 phút! Hệ thống tự động nộp bài.");
+                    submitExam(true);
+                }
+            }, 1000);
+        }
+
+        function updateTimerUI() {
+            const m = Math.floor(Math.max(0, timeRemaining) / 60);
+            const s = Math.max(0, timeRemaining) % 60;
+            const timerEl = document.getElementById('timer');
+            if (timerEl) {
+                timerEl.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            }
+        }
+
+        function cleanText(txt) {
+            if (!txt) return "";
+            return txt.toLowerCase()
+                      .replace(/[.,?!]+$/, "")
+                      .replace(/\s+/g, " ")
+                      .trim();
+        }
+
+        function submitExam(autoSubmit = false) {
+            const nameEl = document.getElementById('student-name');
+            let studentName = nameEl ? nameEl.value.trim() : "";
+
+            if (!studentName && !autoSubmit) {
+                studentName = "Học sinh";
+                if (nameEl) nameEl.value = studentName;
+            }
+
+            // KIỂM TRA ĐÃ LÀM HẾT TẤT CẢ CÁC CÂU CHƯA
+            let unanswered = [];
+            questionsData.forEach(q => {
+                if (q.type === 'mcq') {
+                    const checked = document.querySelector(`input[name="q${q.id}"]:checked`);
+                    if (!checked) unanswered.push(q.id);
+                } else {
+                    const inputEl = document.getElementById(`q${q.id}`);
+                    if (!inputEl || !inputEl.value.trim()) unanswered.push(q.id);
+                }
+            });
+
+            if (unanswered.length > 0 && !autoSubmit) {
+                alert(`Bạn chưa hoàn thành tất cả các câu hỏi!\nCòn thiếu ${unanswered.length} câu chưa làm: Câu ${unanswered.join(', ')}.\nVui lòng làm hết tất cả các câu trước khi nộp bài!`);
+                const firstUnansweredCard = document.getElementById(`question-card-${unanswered[0]}`);
+                if (firstUnansweredCard) {
+                    firstUnansweredCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                return;
+            }
+
+            if (!autoSubmit && !confirm("Bạn có chắc chắn muốn nộp bài?")) return;
+
+            if (timerInterval) clearInterval(timerInterval);
+            isSubmitted = true;
+            saveState();
+
+            let correctCount = 0;
+            let wrongQuestions = [];
+
+            questionsData.forEach(q => {
+                let isCorrect = false;
+                let userAns = "";
+
+                if (q.type === 'mcq') {
+                    const checked = document.querySelector(`input[name="q${q.id}"]:checked`);
+                    userAns = checked ? checked.value : "";
+                    if (userAns === q.ans) isCorrect = true;
+                } else {
+                    const inputEl = document.getElementById(`q${q.id}`);
+                    userAns = inputEl ? inputEl.value : "";
+                    if (cleanText(userAns) === cleanText(q.ans)) isCorrect = true;
+                }
+
+                const feedbackEl = document.getElementById(`feedback-${q.id}`);
+                const statusEl = document.getElementById(`status-${q.id}`);
+                const cardEl = document.getElementById(`question-card-${q.id}`);
+                
+                if (feedbackEl) feedbackEl.classList.remove('hidden');
+
+                if (isCorrect) {
+                    correctCount++;
+                    if (statusEl) statusEl.innerHTML = `<span class="correct-ans">Đúng</span>`;
+                    if (cardEl) {
+                        cardEl.classList.add('bg-emerald-50', 'border-emerald-200');
+                        cardEl.classList.remove('bg-white');
+                    }
+                } else {
+                    wrongQuestions.push(q.id);
+                    if (statusEl) statusEl.innerHTML = `<span class="wrong-ans">Sai</span>`;
+                    if (cardEl) {
+                        cardEl.classList.add('bg-red-50', 'border-red-200');
+                        cardEl.classList.remove('bg-white');
+                    }
+                }
+            });
+
+            showResults(studentName, correctCount, wrongQuestions);
+        }
+
+        function showResults(name, correct, wrongs) {
+            const score = ((correct / 50) * 10).toFixed(1);
+
+            const nameEl = document.getElementById('student-name');
+            if (nameEl) nameEl.disabled = true;
+            document.querySelectorAll('input').forEach(i => i.disabled = true);
+            
+            const submitBtn = document.getElementById('submit-btn');
+            const retryBtn = document.getElementById('retry-btn');
+            const scoreDisplay = document.getElementById('score-display');
+            const resultModal = document.getElementById('result-modal');
+
+            if (submitBtn) submitBtn.classList.add('hidden');
+            if (retryBtn) retryBtn.classList.remove('hidden');
+            if (scoreDisplay) scoreDisplay.classList.remove('hidden');
+            
+            const finalScoreText = document.getElementById('final-score-text');
+            if (finalScoreText) finalScoreText.innerText = `${score} / 10`;
+
+            const modalName = document.getElementById('modal-name');
+            const modalScore = document.getElementById('modal-score');
+            const modalCorrect = document.getElementById('modal-correct');
+            const modalWrong = document.getElementById('modal-wrong');
+            const listEl = document.getElementById('modal-wrong-list');
+
+            if (modalName) modalName.innerText = `Học sinh: ${name || 'Học sinh'}`;
+            if (modalScore) modalScore.innerText = `${score} / 10`;
+            if (modalCorrect) modalCorrect.innerText = correct;
+            if (modalWrong) modalWrong.innerText = wrongs.length;
+            
+            if (listEl) {
+                if (wrongs.length === 0) {
+                    listEl.innerHTML = "<span class='text-emerald-600 font-bold'>Xuất sắc! Không sai câu nào.</span>";
+                } else {
+                    listEl.innerText = wrongs.map(id => `Câu ${id}`).join(', ');
+                }
+            }
+
+            if (resultModal) resultModal.classList.remove('hidden');
+        }
+
+        function restoreSubmittedUI() {
+            let correct = 0;
+            let wrongs = [];
+            questionsData.forEach(q => {
+                let isCorrect = false;
+                if (q.type === 'mcq') {
+                    const checked = document.querySelector(`input[name="q${q.id}"]:checked`);
+                    if (checked && checked.value === q.ans) isCorrect = true;
+                } else {
+                    const inputEl = document.getElementById(`q${q.id}`);
+                    const val = inputEl ? inputEl.value : "";
+                    if (cleanText(val) === cleanText(q.ans)) isCorrect = true;
+                }
+                if (isCorrect) correct++; else wrongs.push(q.id);
+                
+                const feedbackEl = document.getElementById(`feedback-${q.id}`);
+                const statusEl = document.getElementById(`status-${q.id}`);
+                const cardEl = document.getElementById(`question-card-${q.id}`);
+                
+                if (feedbackEl) feedbackEl.classList.remove('hidden');
+                
+                if (isCorrect) {
+                    if (statusEl) statusEl.innerHTML = `<span class="correct-ans">Đúng</span>`;
+                    if (cardEl) {
+                        cardEl.classList.add('bg-emerald-50', 'border-emerald-200');
+                        cardEl.classList.remove('bg-white');
+                    }
+                } else {
+                    if (statusEl) statusEl.innerHTML = `<span class="wrong-ans">Sai</span>`;
+                    if (cardEl) {
+                        cardEl.classList.add('bg-red-50', 'border-red-200');
+                        cardEl.classList.remove('bg-white');
+                    }
+                }
+            });
+
+            const nameEl = document.getElementById('student-name');
+            if (nameEl) nameEl.disabled = true;
+            document.querySelectorAll('input').forEach(i => i.disabled = true);
+            
+            const submitBtn = document.getElementById('submit-btn');
+            const retryBtn = document.getElementById('retry-btn');
+            const scoreDisplay = document.getElementById('score-display');
+
+            if (submitBtn) submitBtn.classList.add('hidden');
+            if (retryBtn) retryBtn.classList.remove('hidden');
+            
+            const score = ((correct / 50) * 10).toFixed(1);
+            if (scoreDisplay) scoreDisplay.classList.remove('hidden');
+            
+            const finalScoreText = document.getElementById('final-score-text');
+            if (finalScoreText) finalScoreText.innerText = `${score} / 10`;
+            
+            updateTimerUI();
+        }
+
+        function closeModal() {
+            const resultModal = document.getElementById('result-modal');
+            if (resultModal) resultModal.classList.add('hidden');
+        }
+
+        function retryExam() {
+            if (confirm("Xóa toàn bộ bài làm để bắt đầu lại từ đầu?")) {
+                try {
+                    localStorage.removeItem(STORAGE_KEY);
+                } catch(e) {}
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
